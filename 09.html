@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>文字特效动画</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: linear-gradient(135deg, #111827 0%, #7c3aed 100%);
+      font-family: "Microsoft YaHei", Arial, sans-serif;
+    }
+    body { display: grid; place-items: center; }
+    canvas {
+      width: min(100vw, 800px);
+      height: auto;
+      display: block;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+      background: linear-gradient(135deg, #2a2512 0%, #3a4fed 100%);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="scene" width="800" height="600"></canvas>
+  <script>
+    const canvas = document.getElementById('scene');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width; const H = canvas.height;
+    const text = '罗继生，你好呀！';
+
+    function drawBackground() {
+      ctx.clearRect(0, 0, W, H);
+      const g = ctx.createLinearGradient(0, 0, W, H);
+      g.addColorStop(0, '#111827');
+      g.addColorStop(1, '#7c3aed');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    function animate(time) {
+      drawBackground();
+      ctx.font = 'bold 92px Microsoft YaHei';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const gradient = ctx.createLinearGradient(0, 0, W, 0);
+      gradient.addColorStop(0, '#fef3c7');
+      gradient.addColorStop(0.5, '#fb7185');
+      gradient.addColorStop(1, '#38bdf8');
+      ctx.fillStyle = gradient;
+      ctx.save();
+      ctx.translate(W / 2, H / 2);
+      ctx.rotate(Math.sin(time * 0.0005) * 0.08);
+      ctx.fillText(text, 0, 0);
+      ctx.restore();
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(100, 420);
+      ctx.quadraticCurveTo(W / 2, 380 + Math.sin(time * 0.003) * 20, W - 100, 420);
+      ctx.stroke();
+
+      requestAnimationFrame(animate);
+    }
+
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
