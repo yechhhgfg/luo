@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>✨ 打字机 · 文案浏览</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(145deg, #0b0e1a 0%, #1a1f33 100%);
+            font-family: 'Segoe UI', 'PingFang SC', Roboto, system-ui, sans-serif;
+            padding: 20px;
+            user-select: none;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 760px;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(24px) saturate(1.4);
+            -webkit-backdrop-filter: blur(24px) saturate(1.4);
+            border-radius: 48px;
+            padding: 40px 36px 36px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: all 0.3s ease;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 14px;
+            letter-spacing: 0.3px;
+        }
+
+        .header .badge {
+            background: rgba(255, 255, 255, 0.06);
+            padding: 6px 16px;
+            border-radius: 60px;
+            font-weight: 500;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .header .counter {
+            font-variant-numeric: tabular-nums;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 6px 14px;
+            border-radius: 60px;
+        }
+
+        .quote-display {
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0 10px;
+            position: relative;
+            transition: opacity 0.3s ease;
+        }
+
+        .quote-text {
+            font-size: 30px;
+            font-weight: 400;
+            line-height: 1.6;
+            color: #f0f2ff;
+            text-align: center;
+            transition: opacity 0.3s ease;
+            word-break: break-word;
+            letter-spacing: 0.02em;
+            text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+            min-height: 3.2rem;
+        }
+
+        .quote-text::before {
+            content: "“";
+            font-size: 48px;
+            color: rgba(255, 255, 255, 0.08);
+            margin-right: 6px;
+            vertical-align: middle;
+            font-weight: 300;
+        }
+        .quote-text::after {
+            content: "”";
+            font-size: 48px;
+            color: rgba(255, 255, 255, 0.08);
+            margin-left: 6px;
+            vertical-align: middle;
+            font-weight: 300;
+        }
+
+        .quote-text.fade-out {
+            opacity: 0;
+            transform: scale(0.98);
+        }
+
+        /* 汇总区 */
+        .all-quotes-container {
+            display: none;
+            padding: 16px 0 8px;
+            max-height: 420px;
+            overflow-y: auto;
+        }
+
+        .all-quotes-container.active {
+            display: block;
+        }
+
+        .all-quotes-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 16px;
+            justify-content: center;
+        }
+
+        .all-quotes-grid .q-item {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.2s;
+            line-height: 1.5;
+            white-space: nowrap;
+        }
+
+        .all-quotes-grid .q-item:hover {
+            background: rgba(255, 255, 255, 0.10);
+            transform: translateY(-2px);
+        }
+
+        .all-quotes-title {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 18px;
+            letter-spacing: 2px;
+            margin-bottom: 18px;
+            font-weight: 300;
+        }
+
+        /* 按钮组 */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-top: 28px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border-radius: 60px;
+            border: none;
+            background: rgba(255, 255, 255, 0.07);
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            font-family: inherit;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.14);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.10);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            box-shadow: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6c5ce7, #a855f7);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 8px 28px rgba(108, 92, 231, 0.30);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #7c6cf7, #b865ff);
+            box-shadow: 0 12px 40px rgba(108, 92, 231, 0.45);
+            border-color: transparent;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.10);
+        }
+
+        .btn-icon {
+            font-size: 18px;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 28px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.20);
+            font-size: 13px;
+        }
+
+        .footer .hint {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .footer .dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #6c5ce7;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.4); }
+        }
+
+        .all-quotes-container::-webkit-scrollbar {
+            width: 4px;
+        }
+        .all-quotes-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+        }
+        .all-quotes-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+        }
+
+        @media (max-width: 500px) {
+            .card {
+                padding: 24px 18px 24px;
+                border-radius: 32px;
+            }
+            .quote-text {
+                font-size: 22px;
+                line-height: 1.5;
+            }
+            .quote-text::before,
+            .quote-text::after {
+                font-size: 34px;
+            }
+            .btn {
+                padding: 8px 14px;
+                font-size: 13px;
+            }
+            .controls {
+                gap: 8px;
+            }
+            .all-quotes-grid .q-item {
+                font-size: 14px;
+                padding: 6px 14px;
+                white-space: normal;
+            }
+            .footer {
+                flex-direction: column;
+                gap: 6px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card" role="main">
+        <!-- 头部 -->
+        <div class="header">
+            <span class="badge">✦ 灵感碎片</span>
+            <span class="counter" id="counter">0 / <span id="totalCount">0</span></span>
+        </div>
+
+        <!-- 单条展示 -->
+        <div class="quote-display" id="quoteDisplay">
+            <div class="quote-text" id="quoteText"></div>
+        </div>
+
+        <!-- 全部文案汇总 -->
+        <div class="all-quotes-container" id="allQuotesContainer">
+            <div class="all-quotes-title">📜 所有文案</div>
+            <div class="all-quotes-grid" id="allQuotesGrid"></div>
+        </div>
+
+        <!-- 控制按钮 -->
+        <div class="controls">
+            <button class="btn btn-secondary" id="prevBtn">← 上一条</button>
+            <button class="btn btn-primary" id="randomBtn">🎲 随机一条</button>
+            <button class="btn btn-secondary" id="nextBtn">下一条 →</button>
+            <button class="btn btn-secondary" id="showAllBtn">📋 展示所有</button>
+        </div>
+
+        <!-- 底部 -->
+        <div class="footer">
+            <span class="hint"><span class="dot"></span></span>
+            <span id="statusText">就绪</span>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ============================================================
+            //  📝 文案库（共 102 条）
+            // ============================================================
+            const QUOTES = [
+                "熬过低谷，花期不远",
+                "生活要永远清醒，永远温柔，永远知进退",
+                "治愈自己最好的方式，就是忙碌和早睡",
+                "那就说好了，要天天开心！",
+                "所有的温柔，眷念，都是对你的灿若星辰的喜欢",
+                "要对过去无限温柔，要把未来布满光亮",
+                "你被安稳地爱着呢，要有做任何事的勇气",
+                "不要为了天亮去跑，跑下去天自己会亮",
+                "当你在追光，你与光同航",
+                "遇你如春水映梨花",
+                "风乍起，合当奋意向人生",
+                "没关系，我们可以慢慢来",
+                "再坚持一下，一切美好的事物都在慢慢奔向你",
+                "月亮会越来越圆，好事也会越来越近",
+                "如果错过了余晖，还可以期待满天繁星",
+                "花在不远处盛开，你在我心里走过又是一年好时光",
+                "美好的，留在心底，遗憾的，随风飘去",
+                "天寒地冻不会太久，春暖花开在来的路上",
+                "你是朝霞，是晚星，是我一切的欢喜",
+                "每个人都是独一无二的！",
+                "有一天，夏日正盛，且单单为你",
+                "Do you know一颗星星有多重吗？",
+                "温柔的天气总是和你一样，止不住让人心动",
+                "热爱可抵岁月漫长",
+                "对任何热爱的事情都要全力以赴",
+                "希望理想和欢喜再次铺满每次春天",
+                "未来很长，有幸成为彼此的耳朵",
+                "诗人喜欢远方和流浪，我只偏爱你",
+                "愿所有微风都安定，所有月夜都有群星",
+                "等到苦尽甘来的那天，山河星月都做贺礼",
+                "所有光芒都需要时间才能被看到",
+                "世间温暖是晚来的善意和干净的你",
+                "隔着时空对望，从对方眼中寻找温暖",
+                "我想你啦！",
+                "愿你所往之地皆是热土，愿你所遇之人皆为挚友",
+                "勇敢走下去，天总会亮，你总会和你想要的撞个满怀",
+                "许愿：我们会越来越好！",
+                "因为心中有梦，所以眼里有光",
+                "好好热爱生活，从每件小事做起",
+                "愿你永远忠于自己，披星戴月地奔向理想与自由",
+                "祝你前程似锦，在深冬初春夏至秋末",
+                "用心的喜欢和极致的偏爱，都值得被尊重",
+                "心有多远，你就能走多远，做一个温暖的人，浅浅笑，轻轻走，稳稳定",
+                "希望开心和好运都奔向你我，我们撞个满怀",
+                "愿你被这个世界温柔以待，躲不过的惊吓都只是虚惊一场，收到的欢喜从无空欢喜",
+                "别担心，你也是我翘首以盼的惊喜",
+                "借一点干净的阳光，好让你怦然心动",
+                "沮丧很容易，但顶着一切热爱生活更酷",
+                "你很特别，也很重要",
+                "满怀希望就会所向披靡",
+                "四季不止有诗和远方，还有这人间草木",
+                "别慌，月亮也在大海某处迷茫",
+                "待度过斜风冷雨，春暖花开就在眼前",
+                "要把温柔留给你喜欢的人",
+                "向着月亮出发，即使不能到达，也能站在群星闪耀之中",
+                "愿你目光所及，心之所向，满满都是爱",
+                "我舔舐你的眼睛，未饮酒，以酩酊",
+                "生活原本沉闷，但跑起来就会有风",
+                "所有的不期而遇，都是你努力的惊喜",
+                "世上没有白走的路，每一步都算数",
+                "学不下去的时候想想考上了有多爽！",
+                "知足且上进，温柔而坚定",
+                "幸福有很多种，把握今天就是一种幸福",
+                "你是比清风明月更难得的人间至善",
+                "盼望大雪的理由，是想和你走到白头",
+                "用行动爱你的人，才是万里挑一",
+                "先变成自己喜欢的人，再遇到一个不需要取悦的人",
+                "就像彩虹的每种颜色都有其存在的意义，我们的爱也真实的存在于生活中",
+                "有一种浪漫叫浪漫时间",
+                "只要有明媚的阳光，我们的生活就会出现很多美好的事",
+                "愿你经历世事，而不失少年意趣",
+                "愿你道路漫长，有的是时间发生故事",
+                "热爱漫无边际，生活自有分寸",
+                "采撷夜空璀璨的星宿，只愿你万事如意",
+                "愿途中你我并肩",
+                "放轻松，就当漫游地球",
+                "发光不是太阳的权利，你也可以！",
+                "不比行色匆匆，不比光芒四射，不必成为别人，只需做你自己",
+                "要按时吃饭，多喝水，好好照顾自己",
+                "愿你今后多一些不需要理由的快乐",
+                "须知人生的参差百态，乃是幸福的本源",
+                "世界会给那些有目标有远见的人让路",
+                "愿你在漫雪的街道上，遇见橙黄色的路灯",
+                "既然你冬天还没来，那我就春天见",
+                "因为有想要追逐的光，所以即使迷茫痛苦，也能看到希望",
+                "那就说好了，天天开心！",
+                "温柔是要有的，愿我们在安静中不慌不忙的坚强",
+                "要把温柔和可爱藏起来，留给喜欢的人",
+                "保持对生活的爱和热忱，把生活过得热气腾腾",
+                "愿这悠长岁月温柔安好，有回忆煮酒",
+                "宇宙山河浪漫生活点滴温暖，都值得你前进",
+                "不要灰心，其实你的每次努力阳光就离你近一点",
+                "世上所有的惊喜和好运，都是你积累的温柔和善良",
+                "顺顺利利的喔",
+                "愿你不只会安慰别人，也懂得多心疼自己",
+                "一定要爱着点什么，恰是草木对光阴的钟情",
+                "愿你山野浓雾都有路灯，风雨漂泊都有归舟",
+                "风停在窗边，嘱咐你要热爱这个世界",
+                "愿你眼角带笑，月色不染眉梢，枕星河入梦",
+                "未来可期，认真生活就能找到被生活藏起来的糖果",
+                "素手摘星愿，许下满天星空",
+                "你是银河系里最浪漫的搭车客",
+                "愿你自律如日出日落，锻造自己收获自由",
+                "愿你热爱生命的春天，珍视时间的清晨",
+                "找到自己的频率然后开开心心过好每一天",
+                "希望你的心情能像星星一样，常年发光，偶尔躲躲乌云",
+                "天空黑到一定程度，星辰就会熠熠生辉",
+                "先去爱自己，再去爱一切",
+                "转眼间，夏天成了故事，秋天成了风景，冬天成了期待"
+            ];
+
+            // ============================================================
+            //  DOM 引用
+            // ============================================================
+            const quoteText = document.getElementById('quoteText');
+            const quoteDisplay = document.getElementById('quoteDisplay');
+            const allContainer = document.getElementById('allQuotesContainer');
+            const allGrid = document.getElementById('allQuotesGrid');
+            const counterEl = document.getElementById('counter');
+            const totalCountEl = document.getElementById('totalCount');
+            const statusText = document.getElementById('statusText');
+
+            const prevBtn = document.getElementById('prevBtn');
+            const randomBtn = document.getElementById('randomBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const showAllBtn = document.getElementById('showAllBtn');
+
+            const total = QUOTES.length;
+            totalCountEl.textContent = total;
+
+            // ============================================================
+            //  状态变量
+            // ============================================================
+            let currentIndex = 0;          // 当前显示的索引（单条模式）
+            let isAllMode = false;         // 是否处于“展示所有”模式
+            let typingTimer = null;        // 打字机定时器
+            let isTyping = false;          // 是否正在打字过程中
+
+            // ============================================================
+            //  工具函数
+            // ============================================================
+            function clearTypingTimer() {
+                if (typingTimer) {
+                    clearInterval(typingTimer);
+                    typingTimer = null;
+                    isTyping = false;
+                }
+            }
+
+            // 更新计数器
+            function updateCounter(index) {
+                counterEl.textContent = `${index + 1} / ${total}`;
+            }
+
+            // 切换到单条模式（隐藏汇总，显示单条区）
+            function switchToSingleMode() {
+                if (isAllMode) {
+                    allContainer.classList.remove('active');
+                    quoteDisplay.style.display = 'flex';
+                    isAllMode = false;
+                }
+            }
+
+            // ============================================================
+            //  打字机效果（在 quoteText 上逐字显示）
+            // ============================================================
+            function typeText(text, onComplete) {
+                clearTypingTimer();
+                quoteText.textContent = '';
+                quoteText.className = 'quote-text';
+                // 确保显示单条区
+                switchToSingleMode();
+                quoteDisplay.style.display = 'flex';
+                allContainer.classList.remove('active');
+
+                let charIndex = 0;
+                const speed = 55;
+                isTyping = true;
+
+                typingTimer = setInterval(() => {
+                    if (charIndex < text.length) {
+                        quoteText.textContent += text.charAt(charIndex);
+                        charIndex++;
+                    } else {
+                        clearTypingTimer();
+                        isTyping = false;
+                        if (onComplete) onComplete();
+                    }
+                }, speed);
+            }
+
+            // ============================================================
+            //  展示指定索引的文案（打字机效果）
+            // ============================================================
+            function showQuote(index) {
+                // 边界保护
+                if (index < 0) index = total - 1;
+                if (index >= total) index = 0;
+                currentIndex = index;
+
+                // 如果当前在汇总模式，先退出
+                if (isAllMode) {
+                    allContainer.classList.remove('active');
+                    quoteDisplay.style.display = 'flex';
+                    isAllMode = false;
+                }
+
+                updateCounter(currentIndex);
+                statusText.textContent = `第 ${currentIndex+1} 条`;
+                const text = QUOTES[currentIndex];
+                // 打字前先清除已有文字（快速清空）
+                quoteText.textContent = '';
+                typeText(text);
+            }
+
+            // ============================================================
+            //  展示所有文案（汇总）
+            // ============================================================
+            function showAllQuotes() {
+                clearTypingTimer();
+                isTyping = false;
+
+                // 切换到汇总模式
+                quoteDisplay.style.display = 'none';
+                allContainer.classList.add('active');
+                isAllMode = true;
+
+                // 生成列表
+                allGrid.innerHTML = '';
+                QUOTES.forEach((q, idx) => {
+                    const span = document.createElement('span');
+                    span.className = 'q-item';
+                    span.textContent = `${idx+1}. ${q}`;
+                    allGrid.appendChild(span);
+                });
+
+                statusText.textContent = '📋 显示全部文案';
+                counterEl.textContent = `${total} / ${total}`;
+            }
+
+            // ============================================================
+            //  导航操作
+            // ============================================================
+            function goPrev() {
+                if (isAllMode) {
+                    // 从汇总模式回到单条，显示上一条（即最后一条的前一条？但逻辑上应该显示当前索引的上一条）
+                    // 这里我们设定：如果当前在汇总模式，切换到单条时默认显示第一条，或者显示最后一条？更合理的是显示当前索引（但汇总时没有索引），我们以当前索引为基准。
+                    // 我们保留 currentIndex 不变，但若之前没有初始化，默认0
+                    // 但为了体验，如果当前在汇总模式，点击上一条，我们显示最后一条（即 total-1）
+                    currentIndex = total - 1;
+                } else {
+                    currentIndex = (currentIndex - 1 + total) % total;
+                }
+                showQuote(currentIndex);
+            }
+
+            function goNext() {
+                if (isAllMode) {
+                    currentIndex = 0;
+                } else {
+                    currentIndex = (currentIndex + 1) % total;
+                }
+                showQuote(currentIndex);
+            }
+
+            function goRandom() {
+                if (isAllMode) {
+                    // 从汇总进入随机，随机选择一条
+                    currentIndex = Math.floor(Math.random() * total);
+                } else {
+                    let newIndex;
+                    do {
+                        newIndex = Math.floor(Math.random() * total);
+                    } while (newIndex === currentIndex && total > 1);
+                    if (total === 1) newIndex = 0;
+                    currentIndex = newIndex;
+                }
+                showQuote(currentIndex);
+            }
+
+            // ============================================================
+            //  键盘快捷键（可选）
+            // ============================================================
+            function handleKeydown(e) {
+                if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    goPrev();
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    goNext();
+                } else if (e.key === ' ' || e.key === 'Space') {
+                    e.preventDefault();
+                    goRandom();
+                }
+            }
+
+            // ============================================================
+            //  初始化
+            // ============================================================
+            function init() {
+                // 显示第一条
+                currentIndex = 0;
+                showQuote(0);
+
+                // 绑定按钮事件
+                prevBtn.addEventListener('click', goPrev);
+                nextBtn.addEventListener('click', goNext);
+                randomBtn.addEventListener('click', goRandom);
+                showAllBtn.addEventListener('click', showAllQuotes);
+
+                // 键盘支持
+                document.addEventListener('keydown', handleKeydown);
+
+                // 页面关闭前清理定时器
+                window.addEventListener('beforeunload', function() {
+                    clearTypingTimer();
+                    document.removeEventListener('keydown', handleKeydown);
+                });
+            }
+
+            // 启动
+            init();
+
+        })();
+    </script>
+
+</body>
+</html>
